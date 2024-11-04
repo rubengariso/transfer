@@ -1,0 +1,138 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mwpcaMonitor</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-03-11"><meta name="DC.source" content="mwpcaMonitor.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [stat, ucl, model] = mwpcaMonitor(X, model)
+    n = size(X,1);
+    stat.sE = NaN(n,1);
+    stat.sT =  NaN(n,1);
+    ucl.uclE =  NaN(n,1);
+    ucl.uclT =  NaN(n,1);
+    <span class="keyword">for</span> i = 1:n,
+        xi = X(i,:); <span class="comment">% the new observation</span>
+        xi_center = xi - model.loc;<span class="comment">% mean centering of the new signal</span>
+        xi_scale = (xi_center)./(sqrt(diag(model.S)))';
+        model.T =  xi_scale*model.P(:,1:model.k); <span class="comment">% PCA score of the new signal</span>
+        sE = sum(( xi_scale -  xi_scale*model.P(:,1:model.k)*model.P(:,1:model.k)')'.^2); <span class="comment">% Q statistic, in LV, the index i for res is not needed, we will show res in a waveform chart</span>
+        sT = sum(((xi_scale* model.P(:,1: model.k)*inv(model.L(1: model.k,1: model.k).^.5)).^2),2);
+        stat.sE(i) = sE;
+        stat.sT(i) = sT;
+
+        <span class="keyword">if</span> sE&lt;=(model.uclE) &amp; sT&lt;=model.uclT,
+            model.Xh = [model.Xh_old(2:end,:);xi];
+            model.S = cov(model.Xh);
+            model.S_scale = cov(zscore(model.Xh));
+            model.loc = mean(model.Xh);
+
+            <span class="keyword">if</span> model.n &lt; model.h,
+            model.n = model.n + 1; <span class="comment">% update of the number of samples</span>
+            <span class="keyword">end</span>
+            model_i = pcaModel(model.S_scale, model.kSelect, model.kSelectType);
+            model.P = model_i.P;
+            model.L = model_i.L;
+            model.k = model_i.k;
+            model.uclT = limitT(model.aT,model.k);
+            model.uclE = limitQ( model.P, model.L, model.k, model.aE, model.uclE);
+            model.Xh_old = [model.Xh_old(2:end,:);xi];
+        <span class="keyword">end</span>
+        ucl.uclE(i) = model.uclE;
+        ucl.uclT(i) = model.uclT;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Error using mwpcaMonitor (line 2)
+Not enough input arguments.
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+function [stat, ucl, model] = mwpcaMonitor(X, model)
+    n = size(X,1);
+    stat.sE = NaN(n,1);
+    stat.sT =  NaN(n,1);
+    ucl.uclE =  NaN(n,1);
+    ucl.uclT =  NaN(n,1);
+    for i = 1:n,
+        xi = X(i,:); % the new observation
+        xi_center = xi - model.loc;% mean centering of the new signal
+        xi_scale = (xi_center)./(sqrt(diag(model.S)))'; 
+        model.T =  xi_scale*model.P(:,1:model.k); % PCA score of the new signal
+        sE = sum(( xi_scale -  xi_scale*model.P(:,1:model.k)*model.P(:,1:model.k)')'.^2); % Q statistic, in LV, the index i for res is not needed, we will show res in a waveform chart
+        sT = sum(((xi_scale* model.P(:,1: model.k)*inv(model.L(1: model.k,1: model.k).^.5)).^2),2);
+        stat.sE(i) = sE;
+        stat.sT(i) = sT;     
+        
+        if sE<=(model.uclE) & sT<=model.uclT, 
+            model.Xh = [model.Xh_old(2:end,:);xi];
+            model.S = cov(model.Xh);
+            model.S_scale = cov(zscore(model.Xh));
+            model.loc = mean(model.Xh);
+                        
+            if model.n < model.h,
+            model.n = model.n + 1; % update of the number of samples
+            end
+            model_i = pcaModel(model.S_scale, model.kSelect, model.kSelectType);
+            model.P = model_i.P;
+            model.L = model_i.L;
+            model.k = model_i.k;
+            model.uclT = limitT(model.aT,model.k);
+            model.uclE = limitQ( model.P, model.L, model.k, model.aE, model.uclE);
+            model.Xh_old = [model.Xh_old(2:end,:);xi];
+        end
+        ucl.uclE(i) = model.uclE;
+        ucl.uclT(i) = model.uclT;
+    end
+end
+##### SOURCE END #####
+--></body></html>
