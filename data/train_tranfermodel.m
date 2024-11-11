@@ -1,8 +1,8 @@
 clc;clear; close all;tic
 load("transfer_calibration.mat")
 
-addpath ..\matalab_KEYS_funcion\functions\
-addpath ..\matalab_KEYS_funcion\'PCA Package Code'\
+addpath ../matalab_KEYS_funcion/functions/
+addpath ../matalab_KEYS_funcion/'PCA Package Code'/
 
 %% Data augmentation
 
@@ -90,25 +90,25 @@ boxplot(RMSE_DS,name)
 ylabel('RMSE')
 set(gca, 'FontSize', 16)
 
-% 
-% 
-% T_ABIAN_R   =   Yhat_ABIAN(:,index_CeC)     * model_PCA.P(:,1:model_PCA.k);
-% T_CARMONA_R =   Yhat_CARMONA(:,index_CeC)   * model_PCA.P(:,1:model_PCA.k);
-% T_CeC_R     =   x_CeC_transfer(:,index_CeC) * model_PCA.P(:,1:model_PCA.k);
-% T_SISAV_R   =   Yhat_SISAV(:,index_CeC)     * model_PCA.P(:,1:model_PCA.k);
-% 
-% figure
-% hold on
-% plot(T_ABIAN_1(:,1),T_ABIAN_1(:,2),'b.')
-% plot(T_CARMONA_R(:,1),T_CARMONA_R(:,2),'r*')
-% plot(T_CeC_R(:,1),T_CeC_R(:,2),'ks')
-% plot(T_SISAV_R(:,1),T_SISAV_R(:,2),'go')
-% hold off
-% xlabel('PC1')
-% ylabel('PC2')
-% legend('ABIAN','CARMONA','CeC','SISAV')
-% set(gca, 'FontSize', 16)
-% box on
+
+
+T_ABIAN_R   =   Yhat_ABIAN(:,index_CeC)     * model_PCA.P(:,1:model_PCA.k);
+T_CARMONA_R =   Yhat_CARMONA(:,index_CeC)   * model_PCA.P(:,1:model_PCA.k);
+T_CeC_R     =   x_CeC_transfer(:,index_CeC) * model_PCA.P(:,1:model_PCA.k);
+T_SISAV_R   =   Yhat_SISAV(:,index_CeC)     * model_PCA.P(:,1:model_PCA.k);
+
+figure
+hold on
+plot(T_ABIAN_1(:,1),T_ABIAN_1(:,2),'b.')
+plot(T_CARMONA_R(:,1),T_CARMONA_R(:,2),'r*')
+plot(T_CeC_R(:,1),T_CeC_R(:,2),'ks')
+plot(T_SISAV_R(:,1),T_SISAV_R(:,2),'go')
+hold off
+xlabel('PC1')
+ylabel('PC2')
+legend('ABIAN','CARMONA','CeC','SISAV')
+set(gca, 'FontSize', 16)
+box on
 % 
 
 %% PCS

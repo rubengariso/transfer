@@ -1,4 +1,4 @@
-function [ kpls, RMSE_k  ] = kSelectPLS_MCCV_3d(X,Y,index_mccv,scaling_method )
+function [ kpls, RMSE_k, SE_k, n_SE_k  ] = kSelectPLS_MCCV_3d(X,Y,index_mccv,scaling_method )
 % Cross-validation
 
 if nargin<=2,
@@ -39,13 +39,18 @@ nRCV=size(index_mccv.train,2);
 [~,my]=size(Y);
 
 % k_max=mx;
-k_max=sum(eig(cov(X))>1e-6);
+% k_max=sum(eig(cov(X))>1e-6);
+L=svd(cov(X));
+k_max=find(cumsum(L)/sum(L)>0.95,1,'first');
+
 
 RMSE_k=zeros(nRCV,k_max);
+SE_k=zeros(nRCV,k_max);
+n_SE_k=zeros(nRCV,k_max);
 PARAM=cell(nRCV,1);
 for k=1:k_max,
     
-    for r=1:nRCV,
+    parfor r=1:nRCV,
 
         indexTrain=index_mccv.train(:,r);
         indexTest=index_mccv.test(:,r);
@@ -111,9 +116,12 @@ for k=1:k_max,
  
 
         E=Y(indexTest,:)-Yhat;
-        RMSE_kk=sqrt(mean(E.^2,1));
-        RMSE_k(r,k)=mean(RMSE_kk,2);
-
+        % RMSE_kk=sqrt(mean(E.^2,1));
+        % RMSE_k(r,k)=mean(RMSE_kk,2);
+        SE_k(r,k)=sum(E(:).^2);
+        n_SE_k(r,k)=length(E(:));
+        %RMSE_k(r,k)=sqrt(mean(E(:).^2));
+        RMSE_k(r,k)=sqrt(SE_k(r,k)/n_SE_k(r,k));
     end
    
     
@@ -149,7 +157,8 @@ for k=1:k_max,
 end
 
 RMSE_k=RMSE_k(:,1:kpls);
-
+SE_k=SE_k(:,1:kpls);
+n_SE_k=n_SE_k(:,1:kpls);
 
 end
 
