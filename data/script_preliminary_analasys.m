@@ -23,9 +23,9 @@ CARMONA_raw.sample=raw_data.CARMONA.sample;
 CARMONA_raw.spectra=raw_data.CARMONA.spectrum;
 
 load('data/SISAV/SISAV.mat','x','NAME','lambda')
-SISAV_raw.spectra=100*x;
-SISAV_raw.sample=categorical(NAME);
 SISAV_raw.lambda=lambda*10^(-6);
+SISAV_raw.sample=categorical(NAME);
+SISAV_raw.spectra=100*x;
 
 clear x NAME lambda raw_data
 
@@ -77,8 +77,6 @@ spectra.ABIAN=zeros(numberOfReplicates*numberOfComumSamples,size(ABIAN_raw.spect
 spectra.CARMONA=zeros(numberOfReplicates*numberOfComumSamples,size(CARMONA_raw.spectra,2));
 spectra.CeC=zeros(numberOfReplicates*numberOfComumSamples,size(CeC_raw.spectra,2));
 spectra.SISAV=zeros(numberOfReplicates*numberOfComumSamples,size(SISAV_raw.spectra,2));
-
-
 
 for i=1:numberOfComumSamples
     index=(i-1)*numberOfReplicates+1:i*numberOfReplicates;
